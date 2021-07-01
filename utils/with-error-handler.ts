@@ -20,6 +20,8 @@ export function withErrorHandler(handler: NextApiHandler) {
         return res.status(res.statusCode >= 400 ? res.statusCode : 500).json(err);
       }
 
+      console.error(err);
+
       return res
         .status(res.statusCode >= 400 ? res.statusCode : 500)
         .json(createError('INTERNAL_SERVER_ERROR', err));
