@@ -4,8 +4,9 @@ import { Client } from '@microsoft/microsoft-graph-client';
 const clientId = process.env.MS_CLIENT_ID;
 const tenantId = process.env.MS_TENANT_ID;
 const clientSecret = process.env.MS_CLIENT_SECRET;
+const senderId = process.env.MS_SENDER_ID;
 
-if (!clientId || !tenantId || !clientSecret) {
+if (!clientId || !tenantId || !clientSecret || !senderId) {
   throw new Error('Missing credentials for MS Azure.');
 }
 
@@ -17,15 +18,16 @@ const clientConfig = {
   },
 };
 
-function getCCA() {
-  return new msal.ConfidentialClientApplication(clientConfig);
-}
-
+/**
+ * @description get accessToken of CoxWave Azure App.
+ * @returns accessToken for microsoft graph api
+ */
 export async function getGraphToken() {
-  const cca = getCCA();
+  const cca = new msal.ConfidentialClientApplication(clientConfig);
 
   const clientCredentialRequest = {
-    scopes: [`api://${clientId}/.default`],
+    // scopes: [`api://${clientId}/.default`],
+    scopes: [`https://graph.microsoft.com/.default`],
   };
 
   const result = await cca.acquireTokenByClientCredential(clientCredentialRequest);
@@ -35,36 +37,50 @@ export async function getGraphToken() {
   return result.accessToken;
 }
 
-export async function getGraphClient() {
-  const accessToken = await getGraphToken();
+async function getGraphClient(accessToken: string) {
   const client = Client.init({ authProvider: (done) => done(null, accessToken) });
 
   return client;
 }
 
-export async function sendEmail() {
-  const client = await getGraphClient();
+interface SendEmailProps {
+  mailTo: {
+    name?: string;
+    address: string;
+  };
+  subject: string;
+  body: {
+    content: string;
+    contentType?: 'html' | 'text';
+  };
+}
 
-  await client.api('/me/sendMail').post({
+/**
+ * Send Email via Microsoft Outlook REST Api v1.0
+ * @param options send email options
+ * @property mailTo: { name, address }
+ * @property subject: string
+ * @property body: { content, contentType }
+ */
+export async function sendEmail({ mailTo, subject, body }: SendEmailProps) {
+  const accessToken = await getGraphToken();
+  const client = await getGraphClient(accessToken);
+
+  await client.api(`/users/${senderId}/sendMail`).post({
     message: {
-      subject: 'Test Email',
+      subject,
       toRecipients: [
         {
           emailAddress: {
-            address: 'kay.kim@coxwave.com',
+            name: mailTo.name,
+            address: mailTo.address,
           },
         },
       ],
       body: {
-        content: '<h1>hello world</h1>',
-        contentType: 'html',
+        content: body.content,
+        contentType: body.contentType ?? 'html',
       },
     },
   });
-}
-
-export async function getInfo() {
-  const client = await getGraphClient();
-
-  return await client.api('/me').get();
 }
