@@ -78,6 +78,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const { insertedId } = await db.collection<User>('user').insertOne({
         name,
         email,
+        profileUrl: avatar_url,
         password: null,
         connectedAccounts: [
           {
@@ -91,7 +92,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             updatedAt: new Date(),
           },
         ],
-        profileUrl: avatar_url,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
