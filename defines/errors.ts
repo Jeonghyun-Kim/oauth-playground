@@ -60,6 +60,11 @@ const ERRORS = {
     name: 'Token expired',
     message: 'The token has been expired.',
   },
+  TOKEN_EMPTY: {
+    code: 'AE002',
+    name: 'Token empty',
+    message: 'You need to signin first.',
+  },
 } as const;
 
 export default ERRORS;

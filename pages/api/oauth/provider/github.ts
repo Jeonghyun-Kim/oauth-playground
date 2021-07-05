@@ -14,8 +14,6 @@ if (!SERVER_URL) throw new Error('Missing SERVER_URL');
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'GET') {
-    // TODO: cookie에 redirectUri 등록?! (sessionStorage vs cookie)
-    // TODO: 이미 로그인한 유저라면, 그냥 redirection 시켜버리기?
     const ourStateToken = signToken({}, { expiresIn: '1m' });
 
     const requestOptions = {
@@ -25,6 +23,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     };
 
     res.redirect(`https://github.com/login/oauth/authorize?${qs.stringify(requestOptions)}`);
+    return;
   }
 };
 

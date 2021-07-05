@@ -15,13 +15,16 @@ export const signToken = (payload: object, options?: SignTokenOption) => {
 interface VerifyTokenOption {
   ignoreExpired?: boolean;
 }
-export const verifyToken = (token: string, options?: VerifyTokenOption) => {
+export const verifyToken = <T extends object = any>(
+  token: string,
+  options?: VerifyTokenOption,
+): T => {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, JWT_SECRET) as jwt.JwtPayload as T;
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
       if (options?.ignoreExpired) {
-        return jwt.decode(token);
+        return jwt.decode(token) as jwt.JwtPayload as T;
       }
 
       throw createError('TOKEN_EXPIRED');
@@ -29,4 +32,9 @@ export const verifyToken = (token: string, options?: VerifyTokenOption) => {
 
     throw createError('INVALID_TOKEN', { name: err.name, message: err.message });
   }
+};
+
+export const renewToken = (token: string): string => {
+  const payload = verifyToken(token, { ignoreExpired: true });
+  return signToken(payload);
 };

@@ -1,12 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { withErrorHandler } from '@utils/with-error-handler';
-import { verifyToken } from '@utils/jsonwebtoken';
+import { signToken, verifyToken } from '@utils/jsonwebtoken';
 import { isString } from '@utils/validator/common';
 import { createError } from '@defines/errors';
 import { connectMongo } from '@utils/connect-mongo';
 
 // types
 import { User } from 'types/user';
+import { isDev } from '@utils/is-development';
+import { ACCESS_TOKEN_EXPIRES_IN } from '@defines/token';
+import { COOKIE_KEY_ACCESS_TOKEN, COOKIE_KEY_REDIRECT_URL } from '@defines/cookie';
 
 const client_id = process.env.GITHUB_ID;
 if (!client_id) throw new Error('Missing GITHUB_ID');
@@ -22,9 +25,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { code, state } = req.query;
 
     if (!isString(state)) {
-      throw createError('VALIDATION_FAILED', {
-        message: `Invalid type of query parameter \`state\`. expected: string, received: ${typeof state}`,
-      });
+      return res.status(400).json(
+        createError('VALIDATION_FAILED', {
+          message: `Invalid type of query parameter \`state\`. expected: string, received: ${typeof state}`,
+        }),
+      );
     }
     // Check validity of the request
     verifyToken(state);
@@ -96,9 +101,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         updatedAt: new Date(),
       });
 
-      // TODO: set accessToken on response cookie?
-
-      res.redirect('/redirection');
+      const accessToken = signToken(
+        { userId: String(insertedId) },
+        { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
+      );
+      res.setHeader(
+        'Set-Cookie',
+        `${COOKIE_KEY_ACCESS_TOKEN}=${accessToken}; ${
+          isDev() ? '' : 'Secure; '
+        }Path=/; SameSite=Lax; HttpOnly`,
+      );
+      res.redirect(req.cookies[COOKIE_KEY_REDIRECT_URL] || '/');
       return;
     }
 
@@ -142,9 +155,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       );
     }
 
-    // TODO: set accessToken on response cookie?
-
-    res.redirect('/redirection');
+    const accessToken = signToken(
+      { userId: String(exUser._id) },
+      { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
+    );
+    res.setHeader(
+      'Set-Cookie',
+      `${COOKIE_KEY_ACCESS_TOKEN}=${accessToken}; ${
+        isDev() ? '' : 'Secure; '
+      }Path=/; SameSite=Lax; HttpOnly`,
+    );
+    res.redirect(req.cookies[COOKIE_KEY_REDIRECT_URL] || '/');
     return;
   }
 };
