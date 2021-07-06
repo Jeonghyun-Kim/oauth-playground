@@ -1,32 +1,33 @@
 import React from 'react';
-import cn from 'classnames';
+import { useRouter } from 'next/router';
+import NextLink from 'next/link';
 
 import { Button } from '@components/ui';
-import { useRouter } from 'next/router';
-import { COOKIE_KEY_ACCESS_TOKEN } from '@defines/cookie';
-import { fetcher } from '@lib/fetcher';
+import { COOKIE_KEY_REDIRECT_URL } from '@defines/cookie';
+import useSession from '@lib/hooks/use-session';
 
 export default function IndexPage() {
   const router = useRouter();
+  const { user } = useSession();
 
   return (
     <div className="mx-auto max-w-screen-lg pt-4">
       <div className="space-x-4">
-        <Button
-          onClick={() => {
-            document.cookie = `${COOKIE_KEY_ACCESS_TOKEN}=${router.asPath};`;
-            router.push('/api/oauth/provider/github');
-          }}
-        >
-          signin
-        </Button>
-        <Button
-          onClick={() => {
-            fetcher('/api/auth').then(({ userId }) => alert(`userId: ${userId}`));
-          }}
-        >
-          check session
-        </Button>
+        <NextLink href="/profile" passHref>
+          <Button as="a">My Profile</Button>
+        </NextLink>
+        {!user && (
+          <NextLink href="/signin" passHref>
+            <Button
+              as="a"
+              onClick={() => {
+                document.cookie = `${COOKIE_KEY_REDIRECT_URL}=${router.asPath}; Path=/`;
+              }}
+            >
+              Sigin Page
+            </Button>
+          </NextLink>
+        )}
       </div>
     </div>
   );

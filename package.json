@@ -25,17 +25,20 @@
     "@tailwindcss/line-clamp": "0.2.1",
     "bcrypt": "5.0.1",
     "classnames": "2.3.1",
+    "cookie": "0.4.1",
     "jsonwebtoken": "8.5.1",
     "mongodb": "3.6.9",
     "next": "11.0.1",
     "nprogress": "0.2.0",
     "qs": "6.10.1",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "swr": "^0.5.6"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "1.41.0",
     "@types/bcrypt": "5.0.0",
+    "@types/cookie": "0.4.0",
     "@types/jsonwebtoken": "8.5.3",
     "@types/mongodb": "3.6.18",
     "@types/nprogress": "0.2.0",

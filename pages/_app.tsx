@@ -7,9 +7,12 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import NProgress from 'nprogress';
 import Script from 'next/script';
+import { SWRConfig } from 'swr';
 
 import ManagedUIContext from '@components/context';
 import { CommonLayout } from '@components/layout';
+
+import { fetcher } from '@lib/fetcher';
 
 NProgress.configure({
   minimum: 0.3,
@@ -39,11 +42,13 @@ export default function App({ Component, pageProps }: AppProps) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <ManagedUIContext>
-        <CommonLayout>
-          <Component {...pageProps} />
-        </CommonLayout>
-      </ManagedUIContext>
+      <SWRConfig value={{ fetcher }}>
+        <ManagedUIContext>
+          <CommonLayout>
+            <Component {...pageProps} />
+          </CommonLayout>
+        </ManagedUIContext>
+      </SWRConfig>
     </>
   );
 }

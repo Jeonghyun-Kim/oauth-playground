@@ -25,4 +25,6 @@ export interface User {
   updatedAt: Date | string;
 }
 
+export type UserInfo = Pick<User, '_id' | 'name' | 'email' | 'profileUrl'>;
+
 export {};
