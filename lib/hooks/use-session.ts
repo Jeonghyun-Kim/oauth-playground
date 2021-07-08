@@ -37,9 +37,6 @@ export default function useSession({
     shouldRetryOnError: false,
   });
 
-  console.log('user:', user);
-  console.log('error:', error);
-
   useEffect(() => {
     if (!user && !error) return;
 
